@@ -1,0 +1,266 @@
+ class Shop:
+    def __init__(self):
+        self.client = client
+        self.product = product
+
+    def all_clients(self):
+        if not (len(self.client)):
+            print("--------| Nenhum Cliente Cadastrado |--------")
+        else:
+            for i in self.client:
+                print("----------------------------------")
+                print("Nome:", self.client[i]["Nome"])
+                print("CPF:", i)
+                print("Email:", self.client[i]["Email"])
+                print("Senha:", self.client[i]["Senha"])
+                print("Credito:", self.client[i]["Credito"])
+                print("----------------------------------")
+
+    def todos_produtos(self):
+        for i in self.product:
+            print(f"Cod:{i}\t\t{self.product[i]['Nome_Produto']:<12} R${self.product[i]['Preço']:.2f} ")
+
+
+class CheckCredentials:  # Checar credenciais
+    @staticmethod
+    def cpf_ok():
+        while True:
+            try:
+                cpf_user = input("CPF:")
+                cpf = cpf_user.replace(".", "").replace("-", "")
+                if cpf.count("0") == 11 or len(
+                        cpf) != 11:  # Zero vezes algo sempre vai dar zero e o CPF vai ser considerado como vdd
+                    print("CPF Inválido!")
+                    continue
+
+                soma_a = 0
+                for i in range(9):
+                    soma_a += int(cpf[i]) * (10 - i)  # Faz a primeira conta do digito verificador
+                if (soma_a % 11) < 2:
+                    soma_a = 0
+                else:
+                    soma_a = 11 - soma_a % 11
+                cpf_valido = cpf.replace(cpf[9], str(soma_a))
+
+                soma_b = 0
+                for x in range(10):
+                    soma_b += int(cpf_valido[x]) * (11 - x)  # Faz a segunda conta do digito verficiador
+                if (soma_b % 11) < 2:
+                    soma_b = 0
+                else:
+                    soma_b = 11 - soma_b % 11
+
+                cpf_valido = cpf_valido.replace(cpf_valido[-1], str(soma_b))
+                if cpf != cpf_valido:  # Verifica se o cpf digitado é válido
+                    print("CPF Inválido!")
+                    continue
+                else:
+                    cpf_format = cpf[0:3] + "." + cpf[3:6] + "." + cpf[6:9] + "-" + cpf[9:11]
+                    return cpf_format  # Retorna cpf formatado com pontos e traços caso tenha sido inserido
+
+            except (ValueError, IndexError):
+                print("CPF Inválido!")
+                continue
+
+    @staticmethod
+    def nome_ok():
+        while True:
+            nome = input("Nome:")
+            if not nome.isalpha():
+                print("Somente Letras!")
+                continue
+            else:
+                return nome
+
+    @staticmethod
+    def senha_ok():
+        while True:
+            senha = input("Senha:")
+            if len(senha) != 6:  # Senha definida como tamanho 6
+                print("Apenas uma senha de 6 digitos é válido!")
+                continue
+            else:
+                return senha
+
+    @staticmethod
+    def email_ok():
+        while True:
+            email = input("Email:")
+            if email.find("@") and email.find("@") != -1:  # Procura se tem o "@" e se tem algo antes #find = False = -1
+                return email
+            else:
+                print("Email inválido!")
+                continue
+
+
+class CreateAccount:
+    def __init__(self):
+        print("-> Cadastro <-")
+        cpf = CheckCredentials.cpf_ok()
+        for i in client:
+            if i == cpf:  # Verifica se CPF já está cadastrado
+                print("Esse CPF já está Cadastrado!")
+                break
+        else:
+            email = CheckCredentials.email_ok()
+            for x in client:
+                if client[x]["Email"] == email:  # Verifica se email já está cadastrado
+                    print("Esse email está em uso")
+                    break
+            else:
+                client[cpf] = {"Email": email,
+                               "Senha": CheckCredentials.senha_ok(),
+                               "Nome": CheckCredentials.nome_ok(),
+                               "Credito": 1000.00}  # Retorna um dicionario: {cpf:{dados....}}
+
+
+class Login:
+    def __init__(self):
+        print("-> Login <-")
+        self.login_bem_sucedido = False
+        self.cpf = None
+        try:
+            if not len(client):  # Procura se tem alguem cadastrado
+                print("--------| Nenhum Cliente Cadastrado |--------")
+            else:
+                login_cpf = CheckCredentials.cpf_ok()
+                for i in client:
+                    if login_cpf == i:  # Procura o cpf no banco de dados (client)
+                        print("|CPF Encontrado|")
+                        login_senha = CheckCredentials.senha_ok()
+                        if login_senha == client[i]["Senha"]:  # Verifica a senha da conta no banco de dados
+                            print("|Logado com Sucesso|")
+                            self.login_bem_sucedido = True
+                            self.cpf = i
+                            break
+                        else:
+                            print("Senha Incorreta!")
+                            break
+                else:
+                    print("CPF não encontrado")
+
+        except ValueError:
+            print("Usuário não encontrado!")
+
+
+class Buy(Login):
+    def __init__(self):
+        super().__init__()
+        if self.login_bem_sucedido:
+            print("----------------------")
+            print("--------|Loja|--------")
+            print("----------------------")
+            carrinho_cliente = []
+            quanto_gastou = 0  # Quanto gastou na compra
+            while True:
+                SalvarAutomatico().salvar()  # Salvar para o cliente não dar um calote fechando o programa
+                print(
+                    "(1) ao (20) = Comprar\n'carrinho' = Ver o Carrinho\n'produtos' = Todos os Produtos\n'sair' = Sair da Loja")
+                opcao = input(":")
+                if opcao.lower() == "sair":
+                    print("Saindo da Loja...")
+                    break
+                elif opcao.lower() == "carrinho":
+                    print("-------------------------")
+                    print("Seu carrinho de compras...\n")
+                    for x in carrinho_cliente:
+                        print(x)
+                    print("-------------------------")
+                    print(f"Total da compra R${quanto_gastou}")
+                    print(f"Saldo Restante:R${client[self.cpf]['Credito']}")
+                    print("-------------------------")
+                elif opcao.lower() == "produtos":
+                    Shop().todos_produtos()
+                    print("-------------------------")
+                else:
+                    try:
+                        if client[self.cpf]["Credito"] - product[opcao]["Preço"] >= 0:  # Verifica se pode comprar
+                            carrinho_cliente.append(
+                                str(f"Cod:{opcao}\tP:{product[opcao]['Nome_Produto']:<12} \tR${product[opcao]['Preço']:.2f}"))
+                            client[self.cpf]["Credito"] -= product[opcao]["Preço"]  # Desconta da conta
+                            quanto_gastou += product[opcao]["Preço"]  # Soma quanto gastou
+
+                        else:
+                            print("Saldo insuficiente...!")
+                    except KeyError:
+                        print("Ops...Essa opção não existe no sistema!")
+        else:
+            print("Usuário não logado!")
+
+
+class Pay(Login):
+    def __init__(self):
+        super().__init__()
+        print("-> Pagar a divida <-")
+        try:
+            divida = abs(client[self.cpf]["Credito"] - 1000)
+            divida_paga = float(client[self.cpf]["Credito"] + divida)
+            print(f"Seu Saldo: R${client[self.cpf]['Credito']}\nSua Divida: R${divida}")
+            client[self.cpf]["Credito"] = divida_paga
+            if divida == 0:
+                print("Você não está devendo nada!")
+            else:
+                print("$$$$$$$$$$$ Divida Paga $$$$$$$$$$$")
+                print(f"Seu Saldo Agora é R${client[self.cpf]['Credito']}")
+        except KeyError:
+            print("Erro no Login...!")  # Quando não tem nenhum cliente cadastrado.
+
+
+class SalvarAutomatico:  # Salva e importa os contatos automaticamente, sem perca de dados de clientes cadastrados.
+    @staticmethod
+    def salvar():
+        with open("clientes.txt", "w") as salvar_clientes:
+            for i in client:
+                salvar_clientes.write(i + ",")  # CPF
+                salvar_clientes.write(client[i]["Email"] + ",")
+                salvar_clientes.write(client[i]["Senha"] + ",")
+                salvar_clientes.write(client[i]["Nome"] + ",")
+                salvar_clientes.write(str(client[i]["Credito"]) + "\n")
+
+    @staticmethod
+    def importar():
+        try:
+            with open("clientes.txt", "r") as importar_clientes:
+                clientes = importar_clientes.read().splitlines()  # Separa por linhas (\n) cada cliente em listas
+                for i in clientes:
+                    var = i.split(",")
+                    client[var[0]] = dict(Email=var[1], Senha=var[2], Nome=var[3],
+                                          Credito=float(var[4]))  # Mesma Ordem do Cadastro
+        except FileNotFoundError:  # Cria o arquivo clientes.txt caso não exista.
+            with open("clientes.txt", "w") as criar_arquivo:
+                criar_arquivo.close()
+
+
+client = {}  # Esta organizado assim: {cpf:{"Email":email@email,"Senha":123546,"Nome":Fulano}
+product = {"1": {"Nome_Produto": "Acabate", "Preço": 1}, "2": {"Nome_Produto": "Beterraba", "Preço": 2},
+           "3": {"Nome_Produto": "Cebola", "Preço": 3}, "4": {"Nome_Produto": "Dado", "Preço": 4},
+           "5": {"Nome_Produto": "Elefante", "Preço": 5}, "6": {"Nome_Produto": "Fogo", "Preço": 6},
+           "7": {"Nome_Produto": "Gasolina", "Preço": 7}, "8": {"Nome_Produto": "Helicoptero", "Preço": 8},
+           "9": {"Nome_Produto": "Isqueiro", "Preço": 9}, "10": {"Nome_Produto": "Jacaré", "Preço": 10},
+           "11": {"Nome_Produto": "Kiwi", "Preço": 11}, "12": {"Nome_Produto": "Laranja", "Preço": 12},
+           "13": {"Nome_Produto": "Maracuja", "Preço": 13}, "14": {"Nome_Produto": "Navio", "Preço": 14},
+           "15": {"Nome_Produto": "Ovo", "Preço": 15.50}, "16": {"Nome_Produto": "Prato", "Preço": 16},
+           "17": {"Nome_Produto": "Queijo", "Preço": 17}, "18": {"Nome_Produto": "Rato", "Preço": 18},
+           "19": {"Nome_Produto": "Sapato", "Preço": 19}, "20": {"Nome_Produto": "Tenis", "Preço": 1000}}
+
+if __name__ == "__main__":
+    while True:
+        SalvarAutomatico().importar()
+        print("(1)Comprar\n(2)Cadastrar\n(3)Pagar Divida\n(4)Todos os Clientes\n(5)Todos os Produtos\n(99)Sair")
+        opcao_sistema = input(":")
+        if opcao_sistema == "1":
+            Buy()
+        elif opcao_sistema == "2":
+            CreateAccount()
+        elif opcao_sistema == "3":
+            Pay()
+        elif opcao_sistema == "4":
+            Shop().all_clients()
+        elif opcao_sistema == "5":
+            Shop().todos_produtos()
+        elif opcao_sistema == "99":
+            break
+        else:
+            print("Opção não encontrada no sistema!")
+        print("--------------------------")
+        SalvarAutomatico().salvar()
